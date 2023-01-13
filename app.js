@@ -3,7 +3,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require('mongoose');
-const encrypt = require('mongoose-encryption');
+//level 3 encryption///hashing///
+const md5=require("md5");
+//const encrypt = require('mongoose-encryption');//level 2
 
 const app = express();
 
@@ -16,13 +18,17 @@ app.use(express.static("public"));
 mongoose.set("strictQuery", false);
 mongoose.connect("mongodb://0.0.0.0:27017/userDB", { useNewUrlParser: true });
 
-///this is documentation for mongoose encryption//////////https://www.npmjs.com/package/mongoose-encryption?activeTab=readme////////////////////
+///this is documentation for mongoose encryption//////////https://www.npmjs.com/package/mongoose-encryption?activeTab=readme// for level1 encryption/////////////////
+////https://www.npmjs.com/package/dotenv///////level 2 encryption///////
+/////https://www.npmjs.com/package/md5////level 3//////
 const userSchema=new mongoose.Schema( {
   email:String,
   password:String
 });
+//level 2 plugins
+//userSchema.plugin(encrypt,{secret:process.env.SECRET,encryptedFields:["password"]});
 
-userSchema.plugin(encrypt,{secret:process.env.SECRET,encryptedFields:["password"]});
+
 const User= new mongoose.model("User",userSchema);
 
 
@@ -40,7 +46,7 @@ app.get("/register",function(req,res){
 app.post("/register",function(req,res){
   const newUser= new User({
     email:req.body.username,
-    password:req.body.password
+    password:md5(req.body.password)
   });
   newUser.save(function(err){
     if(err){
@@ -53,7 +59,7 @@ app.post("/register",function(req,res){
 
 app.post("/login",function(req,res){
   const username=req.body.username;
-  const password=req.body.password;
+  const password=md5(req.body.password);
   User.findOne({email:username},function(err,foundUser){
       if(err){
         console.log(err);
